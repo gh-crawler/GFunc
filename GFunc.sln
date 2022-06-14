@@ -1,8 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GFunc.Photos", "GFunc.Photos\GFunc.Photos.csproj", "{701B3AEB-8941-4C92-BA70-B3456C3EC2EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{5E9F898B-8D96-418A-BE1B-7177F0335DCE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{701B3AEB-8941-4C92-BA70-B3456C3EC2EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{701B3AEB-8941-4C92-BA70-B3456C3EC2EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{701B3AEB-8941-4C92-BA70-B3456C3EC2EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{701B3AEB-8941-4C92-BA70-B3456C3EC2EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E9F898B-8D96-418A-BE1B-7177F0335DCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E9F898B-8D96-418A-BE1B-7177F0335DCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E9F898B-8D96-418A-BE1B-7177F0335DCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E9F898B-8D96-418A-BE1B-7177F0335DCE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
