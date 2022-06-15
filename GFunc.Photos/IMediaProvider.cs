@@ -4,5 +4,5 @@ namespace GFunc.Photos;
 
 public interface IMediaProvider
 {
-    Task<IReadOnlyCollection<MediaItem>> GetMediaAsync(string albumId);
+    Task<IReadOnlyCollection<MediaItem>> GetMediaAsync(IReadOnlyCollection<IPreCondition> preConditions);
 }
