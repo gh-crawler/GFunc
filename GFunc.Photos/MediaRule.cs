@@ -7,27 +7,39 @@ public class MediaRule
     private readonly IReadOnlyCollection<IPreCondition> _preConditions;
     private readonly IReadOnlyCollection<IPostCondition> _postConditions;
     private readonly IMediaProvider _provider;
-    private readonly IMediaAction _action;
+    private readonly IReadOnlyCollection<IMediaAction> _actions;
     private readonly HashSet<string> _handledItems = new(StringComparer.OrdinalIgnoreCase);
+    
+    public string Name { get; }
 
-    public async Task InvokeAsync()
+    public async Task<int> InvokeAsync()
     {
+        int counter = 0;
+        
         foreach (var item in await _provider.GetMediaAsync(_preConditions))
         {
             if (_handledItems.Contains(item.Id) || !MeetsPostConditions(item))
                 continue;
-            
-            await _action.InvokeAsync(item);
+
+            foreach (var action in _actions)
+            {
+                await action.InvokeAsync(item);
+            }
+
+            counter++;
             _handledItems.Add(item.Id);
         }
+
+        return counter;
     }
 
-    public MediaRule(IReadOnlyCollection<IPreCondition> preConditions, IReadOnlyCollection<IPostCondition> postConditions, IMediaProvider provider, IMediaAction action)
+    public MediaRule(IReadOnlyCollection<IPreCondition> preConditions, IReadOnlyCollection<IPostCondition> postConditions, IMediaProvider provider, IReadOnlyCollection<IMediaAction> actions, string name)
     {
         _preConditions = preConditions;
         _postConditions = postConditions;
         _provider = provider;
-        _action = action;
+        _actions = actions;
+        Name = name;
     }
 
     private bool MeetsPostConditions(MediaItem item)

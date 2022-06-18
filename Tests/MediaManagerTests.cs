@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FluentAssertions;
 using GFunc.Photos;
 using GFunc.Photos.Model;
 using Moq;
@@ -33,7 +34,7 @@ public class MediaManagerTests
         provider.Setup(x => x.GetMediaAsync(It.IsAny<IReadOnlyCollection<IPreCondition>>()))
             .ReturnsAsync(Array.Empty<MediaItem>());
         
-        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, action.Object);
+        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, new[] {action.Object}, "Test");
 
         // Act
         await manager.InvokeAsync();
@@ -53,7 +54,7 @@ public class MediaManagerTests
         var testItem = new MediaItem("1", "http://test.url", "image/gif", "file1.gif", new MediaItemMeta(DateTime.UtcNow.AddHours(1)));
         provider.Setup(x => x.GetMediaAsync(It.IsAny<IReadOnlyCollection<IPreCondition>>())).ReturnsAsync(new[] {testItem});
         
-        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, action.Object);
+        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, new[] {action.Object}, "Test");
 
         // Act
         await manager.InvokeAsync();
@@ -72,7 +73,7 @@ public class MediaManagerTests
         var testItem = new MediaItem("1", "http://test.url", "image/gif", "file1.gif", new MediaItemMeta(DateTime.UtcNow.AddHours(1)));
         provider.Setup(x => x.GetMediaAsync(It.IsAny<IReadOnlyCollection<IPreCondition>>())).ReturnsAsync(new[] {testItem});
         
-        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, action.Object);
+        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, new[] {action.Object}, "Test");
 
         // Act
         await manager.InvokeAsync();
@@ -96,16 +97,19 @@ public class MediaManagerTests
         
         provider.Setup(x => x.GetMediaAsync(It.IsAny<IReadOnlyCollection<IPreCondition>>())).ReturnsAsync(new[] {testItem1, testItem2, testItem3});
         
-        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, action.Object);
+        var manager = new MediaRule(_preConditions, _postConditions, provider.Object, new[] {action.Object}, "Test");
 
         // Act
-        await manager.InvokeAsync();
-        await manager.InvokeAsync();
+        int firstCount = await manager.InvokeAsync();
+        int secondCount = await manager.InvokeAsync();
 
         // Assert
         provider.Verify(x => x.GetMediaAsync(It.IsAny<IReadOnlyCollection<IPreCondition>>()), Times.Exactly(2));
         action.Verify(x => x.InvokeAsync(testItem1), Times.Never);
         action.Verify(x => x.InvokeAsync(testItem2), Times.Once);
         action.Verify(x => x.InvokeAsync(testItem3), Times.Once);
+
+        firstCount.Should().Be(2);
+        secondCount.Should().Be(0);
     }
 }

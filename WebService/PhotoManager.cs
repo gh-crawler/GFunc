@@ -6,23 +6,77 @@ namespace WebService;
 public class PhotoManager : BackgroundService
 {
     private readonly ITokenProvider _tokenProvider;
-    private MediaRule? _rule;
-    private readonly string _albumId;
-    private readonly string _basePath;
+    private readonly ILogger<PhotoManager> _logger;
+    private readonly PhotoManagerConfiguration _configuration;
+    private List<MediaRule> _rules;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var token = await AwaitTokenAsync(stoppingToken);
-        _rule = new MediaRule(new[] {new AlbumCondition(_albumId)}, new[] {new DateTimeCondition(DateTime.UtcNow)}, new GooglePhotosProvider(token.AccessToken, token.RefreshToken), new SaveToLocalAction(_basePath));
+
+        _rules = new List<MediaRule>(_configuration.Rules.Count);
+
+        foreach ((string name, RuleConfig rule) in _configuration.Rules)
+        {
+            var (preConditions, postConditions) = BuildConditions(rule);
+            var actions = BuildActions(rule);
+            
+            _rules.Add(new MediaRule(preConditions, postConditions, new GooglePhotosProvider(token.AccessToken, token.RefreshToken), actions, name));
+            
+            _logger.LogInformation($"Rule '{name}': {preConditions.Count} pre-conditions, {postConditions.Count} post-conditions, {actions.Count} actions");
+        }
 
         await Task.Run(() => Loop(stoppingToken), stoppingToken);
     }
 
-    public PhotoManager(ITokenProvider tokenProvider, IConfiguration config)
+    private static (List<IPreCondition> preConditions, List<IPostCondition> postConditions) BuildConditions(RuleConfig ruleConfig)
+    {
+        var preConditions = new List<IPreCondition>();
+        var postConditions = new List<IPostCondition>
+        {
+            new DateTimeCondition()
+        };
+
+        foreach (var condition in ruleConfig.Conditions)
+        {
+            switch (condition.Key)
+            {
+                case "albumId":
+                    preConditions.Add(new AlbumCondition(condition.Value));
+                    break;
+                default: throw new ArgumentOutOfRangeException(nameof(condition), condition.Key, string.Empty);
+            }
+        }
+
+        return (preConditions, postConditions);
+    }
+    
+    private static List<IMediaAction> BuildActions(RuleConfig ruleConfig)
+    {
+        List<IMediaAction> actions = new(ruleConfig.Actions.Count);
+
+        foreach (var configAction in ruleConfig.Actions)
+        {
+            switch (configAction.Key)
+            {
+                case "toLocal":
+                    actions.Add(new SaveToLocalAction(configAction.Value));
+                    break;
+                default: throw new ArgumentOutOfRangeException(nameof(configAction), configAction.Key, string.Empty);
+            }
+        }
+
+        return actions;
+    }
+
+    public PhotoManager(ITokenProvider tokenProvider, IConfiguration config, ILogger<PhotoManager> logger)
     {
         _tokenProvider = tokenProvider;
-        _albumId = config["AlbumId"] ?? throw new Exception("Album ID must be specified");
-        _basePath = config["BasePath"] ?? throw new Exception("BasePath must be specified");
+        _logger = logger;
+        _configuration = config.Get<PhotoManagerConfiguration>();
+
+        if (_configuration.Rules.Count == 0)
+            throw new Exception("Rule config is empty");
     }
 
     private async Task<GoogleToken> AwaitTokenAsync(CancellationToken cancellationToken)
@@ -45,7 +99,14 @@ public class PhotoManager : BackgroundService
 
         while (!token.IsCancellationRequested)
         {
-            await _rule!.InvokeAsync();
+            foreach (var rule in _rules)
+            {
+                int count = await rule.InvokeAsync();
+                
+                if (count > 0)
+                    _logger.LogInformation($"Rule '{rule.Name}': {count} new items handled");
+            }
+
             await Task.Delay(timeout, token);
         }
     }

@@ -15,6 +15,8 @@ public class SaveToLocalAction : IMediaAction
     {
         string path = Path.Combine(_basePath, item.BuildPath());
 
+        Directory.CreateDirectory(Path.GetDirectoryName(path));
+
         using var client = new HttpClient();
 
         string tail = item.IsVideo() ? "dv" : "w10000-h10000-d";
