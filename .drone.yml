@@ -1,6 +1,6 @@
 kind: pipeline
 type: docker
-name: default
+name: build
 platform: 
   os: linux
   arch: arm
@@ -11,3 +11,21 @@ steps:
   commands:
   - dotnet build
   - dotnet test
+
+---
+
+kind: pipeline
+type: exec
+name: deploy
+
+depends_on:
+  - build
+
+platform: 
+  os: linux
+  arch: arm
+
+steps:
+- name: deploy docker image
+  commands: 
+    - docker build . -t gfunc -f WebService/Dockerfile
