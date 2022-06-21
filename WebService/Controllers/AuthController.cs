@@ -1,6 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebService.Controllers;
@@ -10,7 +8,6 @@ public class AuthController : Controller
     private const string Scope = "https://www.googleapis.com/auth/photoslibrary.readonly"; //use %20 for concatinate scopes
     private const string UrlStr = "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={0}&scope={1}&redirect_uri={2}";
 
-    private readonly string _redirectUri;
     private readonly ITokenProvider _tokenProvider;
     private readonly string _clientId;
     private readonly string _clientSecret;
@@ -18,7 +15,7 @@ public class AuthController : Controller
     [HttpGet("auth")]
     public IActionResult Auth()
     {
-        return Redirect(string.Format(UrlStr, _clientId, Scope, Uri.EscapeDataString(_redirectUri)));
+        return Redirect(string.Format(UrlStr, _clientId, Scope, Uri.EscapeDataString($"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/response")));
     }
     
     [HttpGet("response")]
@@ -35,7 +32,7 @@ public class AuthController : Controller
         using HttpClient client = new HttpClient();
         
         string tokenRequestURI = "https://www.googleapis.com/oauth2/v4/token";
-        string tokenRequestBody = $"code={code}&redirect_uri={Uri.EscapeDataString(_redirectUri)}&client_id={_clientId}&client_secret={_clientSecret}&scope={Scope}&grant_type=authorization_code";
+        string tokenRequestBody = $"code={code}&redirect_uri={Uri.EscapeDataString($"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}/response")}&client_id={_clientId}&client_secret={_clientSecret}&scope={Scope}&grant_type=authorization_code";
 
         var body = new StringContent(tokenRequestBody);
         body.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
@@ -57,19 +54,11 @@ public class AuthController : Controller
         return Ok("Account has been added");
     }
 
-    public AuthController(IConfiguration config, ITokenProvider tokenProvider, IServer server)
+    public AuthController(IConfiguration config, ITokenProvider tokenProvider)
     {
         _tokenProvider = tokenProvider;
         _clientId = config["ClientId"];
         _clientSecret = config["ClientSecret"];
-
-        string? url = server.Features.Get<IServerAddressesFeature>()
-            ?.Addresses.FirstOrDefault(x => x.StartsWith("http:", StringComparison.OrdinalIgnoreCase));
-
-        if (string.IsNullOrEmpty(url))
-            throw new Exception("Cannot find server URL");
-
-        _redirectUri = $"{url}/response";
 
         if (string.IsNullOrEmpty(_clientId))
             throw new Exception("ClientId must be specified");
