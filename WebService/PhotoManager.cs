@@ -21,7 +21,7 @@ public class PhotoManager : BackgroundService
             var (preConditions, postConditions) = BuildConditions(rule);
             var actions = BuildActions(rule);
             
-            _rules.Add(new MediaRule(preConditions, postConditions, new GooglePhotosProvider(token.AccessToken, token.RefreshToken), actions, name));
+            _rules.Add(new MediaRule(preConditions, postConditions, new GooglePhotosProvider(token.AccessToken, token.RefreshToken), actions, name, log: msg => _logger.LogInformation(msg)));
             
             _logger.LogInformation($"Rule '{name}': {preConditions.Count} pre-conditions, {postConditions.Count} post-conditions, {actions.Count} actions");
         }
@@ -95,7 +95,7 @@ public class PhotoManager : BackgroundService
 
     private async Task Loop(CancellationToken token)
     {
-        TimeSpan timeout = TimeSpan.FromMinutes(5);
+        TimeSpan timeout = TimeSpan.FromMinutes(1);
 
         while (!token.IsCancellationRequested)
         {
