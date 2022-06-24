@@ -6,8 +6,7 @@ namespace GFunc.Photos;
 
 public class GooglePhotosProvider : IMediaProvider
 {
-    private readonly string _accessToken;
-    private readonly string _refreshToken;
+    private readonly ITokenProvider _tokenProvider;
 
     public async Task<IReadOnlyCollection<MediaItem>> GetMediaAsync(IReadOnlyCollection<IPreCondition> preConditions)
     {
@@ -27,7 +26,9 @@ public class GooglePhotosProvider : IMediaProvider
                     condition.Apply(request, nextPageToken);
             }
 
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+            var token = await _tokenProvider.GetTokenAsync();
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
             request.Headers.Accept.ParseAdd("application/json");
 
             using var response = await client.SendAsync(request);
@@ -47,9 +48,8 @@ public class GooglePhotosProvider : IMediaProvider
         return result;
     }
 
-    public GooglePhotosProvider(string accessToken, string refreshToken)
+    public GooglePhotosProvider(ITokenProvider tokenProvider)
     {
-        _accessToken = accessToken;
-        _refreshToken = refreshToken;
+        _tokenProvider = tokenProvider;
     }
 }

@@ -12,7 +12,7 @@ public class PhotoManager : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var token = await AwaitTokenAsync(stoppingToken);
+        await AwaitTokenAsync(stoppingToken);
 
         _rules = new List<MediaRule>(_configuration.Rules.Count);
 
@@ -21,7 +21,7 @@ public class PhotoManager : BackgroundService
             var (preConditions, postConditions) = BuildConditions(rule);
             var actions = BuildActions(rule);
             
-            _rules.Add(new MediaRule(preConditions, postConditions, new GooglePhotosProvider(token.AccessToken, token.RefreshToken), actions, name, log: msg => _logger.LogInformation(msg)));
+            _rules.Add(new MediaRule(preConditions, postConditions, new GooglePhotosProvider(_tokenProvider), actions, name, log: msg => _logger.LogInformation(msg)));
             
             _logger.LogInformation($"Rule '{name}': {preConditions.Count} pre-conditions, {postConditions.Count} post-conditions, {actions.Count} actions");
         }
@@ -79,7 +79,7 @@ public class PhotoManager : BackgroundService
             throw new Exception("Rule config is empty");
     }
 
-    private async Task<GoogleToken> AwaitTokenAsync(CancellationToken cancellationToken)
+    private async Task AwaitTokenAsync(CancellationToken cancellationToken)
     {
         GoogleToken? token = null;
         var timeout = TimeSpan.FromSeconds(10);
@@ -87,10 +87,8 @@ public class PhotoManager : BackgroundService
         while (token == null)
         {
             await Task.Delay(timeout, cancellationToken);
-            token = _tokenProvider.FindToken();
+            token = await _tokenProvider.FindTokenAsync();
         }
-
-        return token;
     }
 
     private async Task Loop(CancellationToken token)

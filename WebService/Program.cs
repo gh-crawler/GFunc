@@ -1,3 +1,4 @@
+using GFunc.Photos;
 using WebService;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddHostedService<PhotoManager>();
-builder.Services.AddSingleton<ITokenProvider, InMemoryTokenProvider>();
+
+string clientId = ConfigHelper.GetConfigValue("ClientId", builder.Configuration);
+string clientSecret = ConfigHelper.GetConfigValue("ClientSecret", builder.Configuration);
+
+builder.Services.AddSingleton<ITokenProvider>(provider =>
+{
+    var logger = provider.GetService<ILogger<InMemoryTokenProvider>>();
+    return new InMemoryTokenProvider(clientId, clientSecret, s => logger.LogInformation(s));
+});
 
 builder.Logging.ClearProviders().AddConsole();
 
@@ -24,4 +33,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();
