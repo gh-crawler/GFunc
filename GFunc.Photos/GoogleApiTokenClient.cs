@@ -42,7 +42,7 @@ public static class GoogleApiTokenClient
 
         var token = await InternalGetTokenAsync(tokenRequestBody);
         
-        return new GoogleToken(token.AccessToken, token.RefreshToken, DateTime.UtcNow.AddSeconds(token.ExpiresIn - 300), googleToken.Scope, googleToken.RedirectUri);
+        return new GoogleToken(token.AccessToken, googleToken.RefreshToken, DateTime.UtcNow.AddSeconds(token.ExpiresIn - 300), googleToken.Scope, googleToken.RedirectUri);
     }
 
     private static async Task<Token> InternalGetTokenAsync(string tokenRequestBody)

@@ -99,10 +99,17 @@ public class PhotoManager : BackgroundService
         {
             foreach (var rule in _rules)
             {
-                int count = await rule.InvokeAsync();
-                
-                if (count > 0)
-                    _logger.LogInformation($"Rule '{rule.Name}': {count} new items handled");
+                try
+                {
+                    int count = await rule.InvokeAsync();
+
+                    if (count > 0)
+                        _logger.LogInformation($"Rule '{rule.Name}': {count} new items handled");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to invoke rule '{rule.Name}'");
+                }
             }
 
             await Task.Delay(timeout, token);
