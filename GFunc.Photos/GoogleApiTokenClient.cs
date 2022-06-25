@@ -61,6 +61,9 @@ public static class GoogleApiTokenClient
 
         string responseText = await response.Content.ReadAsStringAsync();
 
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"Failed to refresh google api token. Response: {responseText}");
+
         return JsonSerializer.Deserialize<Token>(responseText) ?? throw new Exception("Cannot deserialize token");
     }
 }
