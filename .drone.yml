@@ -18,6 +18,10 @@ kind: pipeline
 type: exec
 name: deploy
 
+trigger: 
+  event:
+    - promote
+
 depends_on:
   - build
 
@@ -28,4 +32,7 @@ platform:
 steps:
 - name: deploy docker image
   commands: 
+    - [ "$(docker ps -a | grep gfunc)" ] && docker-compose -f /media/drive/docker/gfunc/docker-compose.yml down
     - docker build . -t gfunc -f WebService/Dockerfile
+    - docker image prune -f
+    - docker-compose -f /media/drive/docker/gfunc/docker-compose.yml up -d
