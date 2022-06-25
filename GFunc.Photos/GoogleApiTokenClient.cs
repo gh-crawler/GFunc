@@ -38,7 +38,7 @@ public static class GoogleApiTokenClient
 
     public static async Task<GoogleToken> ByRefreshToken(GoogleToken googleToken, string clientId, string clientSecret)
     {
-        string tokenRequestBody = $"refresh_token={googleToken.RefreshToken}&grant_type=refresh_token";
+        string tokenRequestBody = $"refresh_token={googleToken.RefreshToken}&grant_type=refresh_token&client_id={clientId}&client_secret={clientSecret}";
 
         var token = await InternalGetTokenAsync(tokenRequestBody);
         
