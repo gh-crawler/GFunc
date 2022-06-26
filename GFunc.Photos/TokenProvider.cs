@@ -84,7 +84,7 @@ public class InMemoryTokenProvider : ITokenProvider
         if (File.Exists(_tokenFile))
         {
             var token = GoogleApiTokenClient.ByRefreshToken(File.ReadAllText(_tokenFile), clientId, clientSecret).Result;
-            log($"Found refresh token in '{_tokenFile}'. Expiration UTCL: {token.ExpirationDateUtc}");
+            log($"Found refresh token in '{_tokenFile}'. Expiration UTC: {token.ExpirationDateUtc}");
             _token = token;
         }
     }
