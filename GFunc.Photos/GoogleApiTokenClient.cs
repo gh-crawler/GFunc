@@ -33,16 +33,16 @@ public static class GoogleApiTokenClient
 
         var token = await InternalGetTokenAsync(tokenRequestBody);
         
-        return new GoogleToken(token.AccessToken, token.RefreshToken, DateTime.UtcNow.AddSeconds(token.ExpiresIn - 300), scope, redirectUri);
+        return new GoogleToken(token.AccessToken, token.RefreshToken, DateTime.UtcNow.AddSeconds(token.ExpiresIn - 300));
     }
 
-    public static async Task<GoogleToken> ByRefreshToken(GoogleToken googleToken, string clientId, string clientSecret)
+    public static async Task<GoogleToken> ByRefreshToken(string refreshToken, string clientId, string clientSecret)
     {
-        string tokenRequestBody = $"refresh_token={googleToken.RefreshToken}&grant_type=refresh_token&client_id={clientId}&client_secret={clientSecret}";
+        string tokenRequestBody = $"refresh_token={refreshToken}&grant_type=refresh_token&client_id={clientId}&client_secret={clientSecret}";
 
         var token = await InternalGetTokenAsync(tokenRequestBody);
         
-        return new GoogleToken(token.AccessToken, googleToken.RefreshToken, DateTime.UtcNow.AddSeconds(token.ExpiresIn - 300), googleToken.Scope, googleToken.RedirectUri);
+        return new GoogleToken(token.AccessToken, refreshToken, DateTime.UtcNow.AddSeconds(token.ExpiresIn - 300));
     }
 
     private static async Task<Token> InternalGetTokenAsync(string tokenRequestBody)
