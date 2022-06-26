@@ -66,7 +66,11 @@ public class InMemoryTokenProvider : ITokenProvider
     public void SetToken(GoogleToken token)
     {
         _token = token;
-        File.WriteAllText(_tokenFile, token.RefreshToken);
+
+        using Stream str = File.Create(_tokenFile);
+        using StreamWriter writer = new StreamWriter(str);
+
+        writer.Write(token.RefreshToken);
     }
 
     public InMemoryTokenProvider(string clientId, string clientSecret, string configFolder, Action<string> log)
