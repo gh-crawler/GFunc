@@ -14,11 +14,20 @@ public class GoogleToken
 
     public GoogleToken(string accessToken, string refreshToken, DateTime expirationDateUtc, string scope, string redirectUri)
     {
+        if (string.IsNullOrEmpty(accessToken))
+            throw new ArgumentNullException(nameof(accessToken));
+
+        if (string.IsNullOrEmpty(refreshToken))
+            throw new ArgumentNullException(nameof(refreshToken));
+
         AccessToken = accessToken;
         RefreshToken = refreshToken;
         ExpirationDateUtc = expirationDateUtc;
         Scope = scope;
         RedirectUri = redirectUri;
+
+        if (IsExpired)
+            throw new ArgumentException($"Token is already expired. Expiration UTC: {expirationDateUtc}", nameof(expirationDateUtc));
     }
 }
 
