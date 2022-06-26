@@ -33,7 +33,10 @@ public class GooglePhotosProvider : IMediaProvider
 
             using var response = await client.SendAsync(request);
 
-            string json = await response.EnsureSuccessStatusCode().Content.ReadAsStringAsync();
+            string json = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Failed to get media items. Response: {json}");
 
             var collection = JsonSerializer.Deserialize<MediaCollection>(json);
 
