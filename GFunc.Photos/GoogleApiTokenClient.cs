@@ -29,7 +29,7 @@ public static class GoogleApiTokenClient
     
     public static async Task<GoogleToken> ByCodeAsync(string code, string redirectUri, string clientId, string clientSecret, string scope)
     {
-        string tokenRequestBody = $"code={code}&redirect_uri={redirectUri}&client_id={clientId}&client_secret={clientSecret}&scope={scope}&grant_type=authorization_code&access_type=offline";
+        string tokenRequestBody = $"code={code}&redirect_uri={redirectUri}&client_id={clientId}&client_secret={clientSecret}&scope={scope}&grant_type=authorization_code";
 
         var token = await InternalGetTokenAsync(tokenRequestBody);
         

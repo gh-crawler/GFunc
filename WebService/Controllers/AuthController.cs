@@ -7,7 +7,7 @@ namespace WebService.Controllers;
 public class AuthController : Controller
 {
     private const string Scope = "https://www.googleapis.com/auth/photoslibrary.readonly";
-    private const string UrlStr = "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={0}&scope={1}&redirect_uri={2}";
+    private const string UrlStr = "https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={0}&scope={1}&redirect_uri={2}&access_type=offline";
 
     private readonly ITokenProvider _tokenProvider;
     private readonly ILogger<AuthController> _logger;
