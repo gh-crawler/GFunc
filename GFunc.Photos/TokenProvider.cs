@@ -40,7 +40,7 @@ public class InMemoryTokenProvider : ITokenProvider
 {
     private readonly string _clientId;
     private readonly string _clientSecret;
-    private readonly Action<string> _log;
+    private readonly ILogger _logger;
     private GoogleToken? _token;
     private readonly string _tokenFile;
 
@@ -52,7 +52,7 @@ public class InMemoryTokenProvider : ITokenProvider
         if (_token.IsExpired)
         {
             _token = await GoogleApiTokenClient.ByRefreshToken(_token.RefreshToken, _clientId, _clientSecret);
-            _log($"New google token. Expiration UTC: {_token.ExpirationDateUtc}");
+            _logger.Info($"New google token. Expiration UTC: {_token.ExpirationDateUtc}");
         }
 
         return _token;
@@ -73,18 +73,18 @@ public class InMemoryTokenProvider : ITokenProvider
         writer.Write(token.RefreshToken);
     }
 
-    public InMemoryTokenProvider(string clientId, string clientSecret, string configFolder, Action<string> log)
+    public InMemoryTokenProvider(string clientId, string clientSecret, string configFolder, ILogger logger)
     {
         _clientId = clientId;
         _clientSecret = clientSecret;
-        _log = log;
+        _logger = logger;
 
         _tokenFile = Path.Combine(configFolder, "token");
         
         if (File.Exists(_tokenFile))
         {
             var token = GoogleApiTokenClient.ByRefreshToken(File.ReadAllText(_tokenFile), clientId, clientSecret).Result;
-            log($"Found refresh token in '{_tokenFile}'. Expiration UTC: {token.ExpirationDateUtc}");
+            logger.Info($"Found refresh token in '{_tokenFile}'. Expiration UTC: {token.ExpirationDateUtc}");
             _token = token;
         }
     }

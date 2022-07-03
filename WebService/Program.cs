@@ -15,8 +15,8 @@ string configFolder = builder.Environment.IsDevelopment() ? ConfigHelper.GetConf
 
 builder.Services.AddSingleton<ITokenProvider>(provider =>
 {
-    var logger = provider.GetService<ILogger<InMemoryTokenProvider>>();
-    return new InMemoryTokenProvider(clientId, clientSecret, configFolder, s => logger.LogInformation(s));
+    var logger = provider.GetService<ILogger<InMemoryTokenProvider>>() ?? throw new Exception("Cannot get logger from service provider");
+    return new InMemoryTokenProvider(clientId, clientSecret, configFolder, new LoggerAdapter(logger));
 });
 
 builder.Logging.ClearProviders().AddConsole();
